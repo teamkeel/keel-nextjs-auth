@@ -1,10 +1,11 @@
 'use client';
 import { useState } from 'react';
 
-import { useKeel } from './layout';
+
 import { UserRole } from '@/utils/keelClient';
 import styled, { keyframes } from 'styled-components';
 import { Modal } from '@/components/Modal';
+import { useKeel } from '@/utils/keelContext';
 
 function HomePage() {
   const keel = useKeel();

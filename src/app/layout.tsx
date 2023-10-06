@@ -1,16 +1,16 @@
 "use client"
 
+
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { KeelProvider } from '@/utils/keelContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
-import { APIClient } from '../utils/keelClient';
-import { keel } from '@teamkeel/client-react';
 
 
-export const { KeelProvider, useKeel } = keel(APIClient);
+
 
 const metadata: Metadata = {
   title: 'Create Next App',
@@ -28,6 +28,5 @@ export default function RootLayout({
       <body className={inter.className}>{children}</body>
     </html>
     </KeelProvider>
-
   )
 }
