@@ -22,8 +22,8 @@ function HomePage() {
     try {
       const response = await keel.api.mutations.authenticate({
         emailPassword: {
-          email: email,
-          password: password,
+          email,
+          password,
         },
         createIfNotExists: true,
       });
