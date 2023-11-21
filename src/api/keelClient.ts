@@ -11,7 +11,7 @@ class Core {
   constructor(private config: RequestConfig) {}
 
   ctx = {
-    token: '',
+    token: "",
     isAuthenticated: false,
   };
 
@@ -39,27 +39,30 @@ class Core {
       return this;
     },
     clearToken: (): Core => {
-      this.ctx.token = '';
+      this.ctx.token = "";
       this.ctx.isAuthenticated = false;
       return this;
     },
     rawRequest: async <T>(action: string, body: any): Promise<APIResult<T>> => {
       try {
-        const result = await globalThis.fetch(stripTrailingSlash(this.config.baseUrl) + '/json/' + action, {
-          method: 'POST',
-          cache: 'no-cache',
-          headers: {
-            accept: 'application/json',
-            'content-type': 'application/json',
-            ...this.config.headers,
-            ...(this.ctx.token
-              ? {
-                  Authorization: 'Bearer ' + this.ctx.token,
-                }
-              : {}),
-          },
-          body: JSON.stringify(body),
-        });
+        const result = await globalThis.fetch(
+          stripTrailingSlash(this.config.baseUrl) + "/json/" + action,
+          {
+            method: "POST",
+            cache: "no-cache",
+            headers: {
+              accept: "application/json",
+              "content-type": "application/json",
+              ...this.config.headers,
+              ...(this.ctx.token
+                ? {
+                    Authorization: "Bearer " + this.ctx.token,
+                  }
+                : {}),
+            },
+            body: JSON.stringify(body),
+          }
+        );
 
         if (result.status >= 200 && result.status < 299) {
           const rawJson = await result.text();
@@ -70,7 +73,7 @@ class Core {
           };
         }
 
-        let errorMessage = 'unknown error';
+        let errorMessage = "unknown error";
 
         try {
           const errorData: {
@@ -79,7 +82,7 @@ class Core {
           errorMessage = errorData.message;
         } catch (error) {}
 
-        const requestId = result.headers.get('X-Amzn-Requestid') || undefined;
+        const requestId = result.headers.get("X-Amzn-Requestid") || undefined;
 
         const errorCommon = {
           message: errorMessage,
@@ -91,35 +94,35 @@ class Core {
             return {
               error: {
                 ...errorCommon,
-                type: 'bad_request',
+                type: "bad_request",
               },
             };
           case 401:
             return {
               error: {
                 ...errorCommon,
-                type: 'unauthorized',
+                type: "unauthorized",
               },
             };
           case 403:
             return {
               error: {
                 ...errorCommon,
-                type: 'forbidden',
+                type: "forbidden",
               },
             };
           case 404:
             return {
               error: {
                 ...errorCommon,
-                type: 'not_found',
+                type: "not_found",
               },
             };
           case 500:
             return {
               error: {
                 ...errorCommon,
-                type: 'internal_server_error',
+                type: "internal_server_error",
               },
             };
 
@@ -127,15 +130,15 @@ class Core {
             return {
               error: {
                 ...errorCommon,
-                type: 'unknown',
+                type: "unknown",
               },
             };
         }
       } catch (error) {
         return {
           error: {
-            type: 'unknown',
-            message: 'unknown error',
+            type: "unknown",
+            message: "unknown error",
             error,
           },
         };
@@ -148,14 +151,14 @@ class Core {
 
 const stripTrailingSlash = (str: string) => {
   if (!str) return str;
-  return str.endsWith('/') ? str.slice(0, -1) : str;
+  return str.endsWith("/") ? str.slice(0, -1) : str;
 };
 
 const RFC3339 =
   /^(?:\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01]))?(?:[T\s](?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?(?:\.\d+)?(?:[Zz]|[+-](?:[01]\d|2[0-3]):?[0-5]\d)?)?$/;
 function reviver(key: any, value: any) {
   // Convert any ISO8601/RFC3339 strings to dates
-  if (typeof value === 'string' && RFC3339.test(value)) {
+  if (typeof value === "string" && RFC3339.test(value)) {
     return new Date(value);
   }
   return value;
@@ -181,42 +184,42 @@ type Result<T, U> = NonNullable<Data<T> | Err<U>>;
 
 /* 400 */
 type BadRequestError = {
-  type: 'bad_request';
+  type: "bad_request";
   message: string;
   requestId?: string;
 };
 
 /* 401 */
 type UnauthorizedError = {
-  type: 'unauthorized';
+  type: "unauthorized";
   message: string;
   requestId?: string;
 };
 
 /* 403 */
 type ForbiddenError = {
-  type: 'forbidden';
+  type: "forbidden";
   message: string;
   requestId?: string;
 };
 
 /* 404 */
 type NotFoundError = {
-  type: 'not_found';
+  type: "not_found";
   message: string;
   requestId?: string;
 };
 
 /* 500 */
 type InternalServerError = {
-  type: 'internal_server_error';
+  type: "internal_server_error";
   message: string;
   requestId?: string;
 };
 
 /* Unhandled/unexpected errors */
 type UnknownError = {
-  type: 'unknown';
+  type: "unknown";
   message: string;
   error?: unknown;
   requestId?: string;
@@ -237,40 +240,51 @@ export class APIClient extends Core {
     super(config);
   }
   private actions = {
-    createUser: (i: CreateUserInput) => {
-      return this.client.rawRequest<User>('createUser', i);
+    createProfile: (i: CreateProfileInput) => {
+      return this.client.rawRequest<Profile>("createProfile", i);
+    },
+    myProfile: (i?: MyProfileInput) => {
+      return this.client.rawRequest<Profile | null>("myProfile", i);
     },
     authenticate: (i: AuthenticateInput) => {
-      return this.client.rawRequest<AuthenticateResponse>('authenticate', i).then((res) => {
-        if (res.data && res.data.token) this.client.setToken(res.data.token);
-        return res;
-      });
+      return this.client
+        .rawRequest<AuthenticateResponse>("authenticate", i)
+        .then((res) => {
+          if (res.data && res.data.token) this.client.setToken(res.data.token);
+          return res;
+        });
     },
     requestPasswordReset: (i: RequestPasswordResetInput) => {
-      return this.client.rawRequest<RequestPasswordResetResponse>('requestPasswordReset', i);
+      return this.client.rawRequest<RequestPasswordResetResponse>(
+        "requestPasswordReset",
+        i
+      );
     },
     resetPassword: (i: ResetPasswordInput) => {
-      return this.client.rawRequest<ResetPasswordResponse>('resetPassword', i);
+      return this.client.rawRequest<ResetPasswordResponse>("resetPassword", i);
     },
   };
 
   api = {
-    queries: {},
+    queries: {
+      myProfile: this.actions.myProfile,
+    },
     mutations: {
-      createUser: this.actions.createUser.bind(this),
-      authenticate: this.actions.authenticate.bind(this),
-      requestPasswordReset: this.actions.requestPasswordReset.bind(this),
-      resetPassword: this.actions.resetPassword.bind(this),
+      createProfile: this.actions.createProfile,
+      authenticate: this.actions.authenticate,
+      requestPasswordReset: this.actions.requestPasswordReset,
+      resetPassword: this.actions.resetPassword,
     },
   };
 }
 
 // API Types
 
-export interface CreateUserInput {
+export interface CreateProfileInput {
   name: string;
-  role: UserRole;
+  username: string;
 }
+export interface MyProfileInput {}
 export interface EmailPasswordInput {
   email: string;
   password: string;
@@ -293,18 +307,9 @@ export interface ResetPasswordInput {
   password: string;
 }
 export interface ResetPasswordResponse {}
-export enum UserRole {
-  Customer = 'Customer',
-  Vendor = 'Vendor',
-}
-export interface UserRoleWhereCondition {
-  equals?: UserRole | null;
-  oneOf?: UserRole[] | null;
-}
-export interface User {
+export interface Profile {
   name: string;
-  role: UserRole;
-  photoUrl: string | null;
+  username: string;
   id: string;
   createdAt: Date;
   updatedAt: Date;
@@ -312,7 +317,7 @@ export interface User {
 }
 export interface Identity {
   email: string | null;
-  emailVerified: boolean | null;
+  emailVerified: boolean;
   password: any | null;
   externalId: string | null;
   issuer: string | null;

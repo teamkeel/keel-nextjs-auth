@@ -1,0 +1,22 @@
+model Profile {
+    fields {
+        identity Identity @unique
+        name Text
+        username Text @unique
+    }
+
+    actions {
+        create createProfile() with (name, username) {
+            @set(profile.identity = ctx.identity)
+            @permission(expression: ctx.isAuthenticated)
+        }
+        get myProfile() {
+            @where(profile.identity == ctx.identity)
+        }
+    }
+
+    @permission(
+        actions: [get],
+        expression: profile.identity == ctx.identity
+    )
+}
